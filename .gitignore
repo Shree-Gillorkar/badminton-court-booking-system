@@ -31,3 +31,30 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Build
+/build/
+.gradle/
+out/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / Secrets
+.env
+.env.*
+application-local.yml
+application-local.properties
+
+# Kotlin
+*.kotlin_module
