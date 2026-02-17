@@ -58,3 +58,6 @@ application-local.properties
 
 # Kotlin
 *.kotlin_module
+
+# Documentation
+*.md
