@@ -1,26 +1,11 @@
 package com.badminton.booking.service
 
-import com.badminton.booking.dto.ApiResponse
-import com.badminton.booking.dto.AvailabilityResponse
 import com.badminton.booking.dto.BookCourtRequest
-import com.badminton.booking.dto.BookCourtResponse
-import com.badminton.booking.entity.Booking
-import com.badminton.booking.entity.Court
-import com.badminton.booking.entity.Location
-import com.badminton.booking.entity.TimeSlot
-import com.badminton.booking.entity.User
+import com.badminton.booking.entity.*
 import com.badminton.booking.enum.BookingStatus
 import com.badminton.booking.enum.UserRole
-import com.badminton.booking.exception.BookingCancellationNotAllowedException
-import com.badminton.booking.exception.BookingNotFoundException
-import com.badminton.booking.exception.LocationNotFoundException
-import com.badminton.booking.exception.MobileNotRegisteredException
-import com.badminton.booking.exception.SlotAlreadyBookedException
-import com.badminton.booking.repository.BookingRepository
-import com.badminton.booking.repository.CourtRepository
-import com.badminton.booking.repository.LocationRepository
-import com.badminton.booking.repository.TimeSlotRepository
-import com.badminton.booking.repository.UserRepository
+import com.badminton.booking.exception.*
+import com.badminton.booking.repository.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -31,7 +16,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.*
 
@@ -203,13 +187,15 @@ class BookingServiceTest {
         whenever(courtRepository.findById(1L)).thenReturn(Optional.of(court))
         whenever(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot))
         val expectedEndTime = startTime.plusHours(1)
-        whenever(bookingRepository.existsByCourt_IdAndCourt_Location_IdAndAndBookingDateAndTimeSlot_StartTimeLessThanAndTimeSlot_EndTimeGreaterThan(
-            locationId = location.id,
-            courtId = court.id,
-            bookingDate = bookingDate,
-            endTime = expectedEndTime,
-            startTime = startTime
-        )).thenReturn(false)
+        whenever(
+            bookingRepository.existsByCourt_IdAndCourt_Location_IdAndAndBookingDateAndTimeSlot_StartTimeLessThanAndTimeSlot_EndTimeGreaterThan(
+                locationId = location.id,
+                courtId = court.id,
+                bookingDate = bookingDate,
+                endTime = expectedEndTime,
+                startTime = startTime
+            )
+        ).thenReturn(false)
         whenever(bookingRepository.save(any<Booking>())).thenAnswer { it.arguments[0] as Booking }
 
         val response = bookingService.bookCourt(mobileNumber, request)
@@ -286,13 +272,15 @@ class BookingServiceTest {
         whenever(courtRepository.findById(1L)).thenReturn(Optional.of(court))
         whenever(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot))
         val expectedEndTime = startTime.plusHours(1)
-        whenever(bookingRepository.existsByCourt_IdAndCourt_Location_IdAndAndBookingDateAndTimeSlot_StartTimeLessThanAndTimeSlot_EndTimeGreaterThan(
-            locationId = location.id,
-            courtId = court.id,
-            bookingDate = bookingDate,
-            endTime = expectedEndTime,
-            startTime = startTime
-        )).thenReturn(true)
+        whenever(
+            bookingRepository.existsByCourt_IdAndCourt_Location_IdAndAndBookingDateAndTimeSlot_StartTimeLessThanAndTimeSlot_EndTimeGreaterThan(
+                locationId = location.id,
+                courtId = court.id,
+                bookingDate = bookingDate,
+                endTime = expectedEndTime,
+                startTime = startTime
+            )
+        ).thenReturn(true)
 
         assertThrows<SlotAlreadyBookedException> {
             bookingService.bookCourt(mobileNumber, request)
@@ -430,7 +418,8 @@ class BookingServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
-        val timeSlot = TimeSlot(id = 1, startTime = LocalTime.now().plusHours(2), endTime = LocalTime.now().plusHours(3))
+        val timeSlot =
+            TimeSlot(id = 1, startTime = LocalTime.now().plusHours(2), endTime = LocalTime.now().plusHours(3))
         val booking = Booking(
             id = bookingId,
             bookingDate = LocalDate.now(),
@@ -463,7 +452,8 @@ class BookingServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
-        val timeSlot = TimeSlot(id = 1, startTime = LocalTime.now().minusHours(2), endTime = LocalTime.now().minusHours(1))
+        val timeSlot =
+            TimeSlot(id = 1, startTime = LocalTime.now().minusHours(2), endTime = LocalTime.now().minusHours(1))
         val booking = Booking(
             id = bookingId,
             bookingDate = LocalDate.now(),

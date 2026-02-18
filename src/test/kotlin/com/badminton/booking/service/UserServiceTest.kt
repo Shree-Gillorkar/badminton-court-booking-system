@@ -1,11 +1,6 @@
 package com.badminton.booking.service
 
-import com.badminton.booking.dto.BookingResponseDto
-import com.badminton.booking.entity.Booking
-import com.badminton.booking.entity.Court
-import com.badminton.booking.entity.Location
-import com.badminton.booking.entity.TimeSlot
-import com.badminton.booking.entity.User
+import com.badminton.booking.entity.*
 import com.badminton.booking.enum.BookingStatus
 import com.badminton.booking.enum.UserRole
 import com.badminton.booking.repository.BookingRepository

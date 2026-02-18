@@ -1,11 +1,7 @@
 package com.badminton.booking.service
 
 import com.badminton.booking.dto.RegisterLocationRequest
-import com.badminton.booking.entity.Booking
-import com.badminton.booking.entity.Court
-import com.badminton.booking.entity.Location
-import com.badminton.booking.entity.TimeSlot
-import com.badminton.booking.entity.User
+import com.badminton.booking.entity.*
 import com.badminton.booking.enum.BookingStatus
 import com.badminton.booking.enum.UserRole
 import com.badminton.booking.exception.MobileNotRegisteredException
@@ -520,7 +516,7 @@ class AdminServiceTest {
 
         assert(response.success)
         assert(response.data?.locations?.size == 2)
-        
+
         val location1Dto = response.data?.locations?.get(0)
         assert(location1Dto?.locationName == "Mumbai")
         assert(location1Dto?.courts?.size == 2)
@@ -642,7 +638,7 @@ class AdminServiceTest {
 
         assert(response.success)
         val bookingDto = response.data?.locations?.get(0)?.courts?.get(0)?.bookings?.get(0)
-        
+
         assert(bookingDto?.bookingId == 42L)
         assert(bookingDto?.bookingDate == bookingDate)
         assert(bookingDto?.startTime == startTime)
