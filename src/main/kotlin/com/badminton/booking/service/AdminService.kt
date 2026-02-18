@@ -26,13 +26,13 @@ class AdminService(
     fun registerLocation(req: RegisterLocationRequest): ApiResponse<String> {
 
         val admin = userRepository.findByMobileNumber(req.adminMobile)
-            ?: throw MobileNotRegisteredException("User not found, Please Register!")
+            .orElseThrow { MobileNotRegisteredException("User not found, Please Register!") }
 
-        if (admin.get().role != UserRole.ADMIN) {
+        if (admin.role != UserRole.ADMIN) {
             throw UnauthorizedBookingAccessException("Only admin can register courts")
         }
 
-        val locationCount = locationRepository.countByAdminId(admin.get().id)
+        val locationCount = locationRepository.countByAdminId(admin.id)
         if (locationCount >= 3) {
             throw ValidationException("Maximum 3 locations allowed per admin")
         }
@@ -45,8 +45,8 @@ class AdminService(
             Location(
                 name = req.locationName,
                 imageUrl = req.imageUrl,
-                admin = admin.get(),
-                userMobile = admin.get().mobileNumber,
+                admin = admin,
+                userMobile = admin.mobileNumber,
                 complexName = req.complexName
             )
         )
@@ -64,11 +64,12 @@ class AdminService(
     }
 
     fun getAdminDashboard(mobile: String): ApiResponse<AdminDashboardResponse> {
-        val admin = userRepository.findByMobileNumber(mobile) ?: throw RuntimeException("Admin not found")
-        if (admin.get().role != UserRole.ADMIN) {
+        val admin = userRepository.findByMobileNumber(mobile)
+            .orElseThrow { RuntimeException("Admin not found") }
+        if (admin.role != UserRole.ADMIN) {
             throw UnauthorizedBookingAccessException("Only admin allowed")
         }
-        val locations = locationRepository.findByAdminId(admin.get().id)
+        val locations = locationRepository.findByAdminId(admin.id)
         val locationDtos = locations.map { location ->
             val courtDtos = location.courts.map { court ->
                 val bookings = bookingRepository.findByCourtId(court.id)

@@ -59,5 +59,7 @@ application-local.properties
 # Kotlin
 *.kotlin_module
 
-# Documentation
-*.md
+# Documentation (ignore generated markdown, but keep important docs)
+# *.md - Commented out to preserve README.md, HELP.md, and other important documentation
+# Uncomment if you want to ignore all .md files:
+# *.md
