@@ -67,12 +67,10 @@ class BookingServiceTest {
         )
     }
 
-    // ==================== GET FULL AVAILABILITY TESTS ====================
 
     @Test
     @DisplayName("Should get full availability for a specific date")
     fun testGetFullAvailabilitySuccess() {
-        // Arrange
         val date = LocalDate.now().plusDays(1)
         val location = Location(
             id = 1,
@@ -91,10 +89,8 @@ class BookingServiceTest {
         whenever(timeSlotRepository.findAll()).thenReturn(listOf(timeSlot))
         whenever(bookingRepository.findByBookingDate(date)).thenReturn(emptyList())
 
-        // Act
         val response = bookingService.getFullAvailability(date)
 
-        // Assert
         assert(response.date == date)
         assert(response.locations.isNotEmpty())
         assert(response.locations[0].courts[0].slots[0].status == "AVAILABLE")
@@ -103,7 +99,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should show booked slots correctly")
     fun testGetFullAvailabilityWithBookedSlots() {
-        // Arrange
         val date = LocalDate.now().plusDays(1)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val location = Location(
@@ -125,17 +120,14 @@ class BookingServiceTest {
         whenever(timeSlotRepository.findAll()).thenReturn(listOf(timeSlot))
         whenever(bookingRepository.findByBookingDate(date)).thenReturn(listOf(booking))
 
-        // Act
         val response = bookingService.getFullAvailability(date)
 
-        // Assert
         assert(response.locations[0].courts[0].slots[0].status == "BOOKED")
     }
 
     @Test
     @DisplayName("Should return availability with multiple locations and courts")
     fun testGetFullAvailabilityMultipleLocationsAndCourts() {
-        // Arrange
         val date = LocalDate.now().plusDays(1)
         val admin1 = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val admin2 = User(id = 2, mobileNumber = "8888888888", password = "pass", role = UserRole.ADMIN)
@@ -173,21 +165,17 @@ class BookingServiceTest {
         whenever(timeSlotRepository.findAll()).thenReturn(listOf(timeSlot1, timeSlot2))
         whenever(bookingRepository.findByBookingDate(date)).thenReturn(emptyList())
 
-        // Act
         val response = bookingService.getFullAvailability(date)
 
-        // Assert
         assert(response.locations.size == 2)
         assert(response.locations[0].courts.size == 2)
         assert(response.locations[1].courts.size == 1)
     }
 
-    // ==================== BOOK COURT TESTS ====================
 
     @Test
     @DisplayName("Should book court successfully")
     fun testBookCourtSuccess() {
-        // Arrange
         val mobileNumber = "8888888888"
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
@@ -214,7 +202,6 @@ class BookingServiceTest {
         whenever(locationRepository.findById(1L)).thenReturn(Optional.of(location))
         whenever(courtRepository.findById(1L)).thenReturn(Optional.of(court))
         whenever(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot))
-        // Service calculates: endTime = slot.startTime.plusHours(1)
         val expectedEndTime = startTime.plusHours(1)
         whenever(bookingRepository.existsByCourt_IdAndCourt_Location_IdAndAndBookingDateAndTimeSlot_StartTimeLessThanAndTimeSlot_EndTimeGreaterThan(
             locationId = location.id,
@@ -225,10 +212,8 @@ class BookingServiceTest {
         )).thenReturn(false)
         whenever(bookingRepository.save(any<Booking>())).thenAnswer { it.arguments[0] as Booking }
 
-        // Act
         val response = bookingService.bookCourt(mobileNumber, request)
 
-        // Assert
         assert(response.location == location.name)
         assert(response.court == court.name)
         assert(response.bookingDate == bookingDate)
@@ -238,7 +223,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when user not registered")
     fun testBookCourtUserNotRegistered() {
-        // Arrange
         val mobileNumber = "8888888888"
         val request = BookCourtRequest(
             locationId = 1,
@@ -248,7 +232,6 @@ class BookingServiceTest {
         )
         whenever(userRepository.findByMobileNumber(mobileNumber)).thenReturn(Optional.empty())
 
-        // Act & Assert
         assertThrows<MobileNotRegisteredException> {
             bookingService.bookCourt(mobileNumber, request)
         }
@@ -257,7 +240,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when location not found")
     fun testBookCourtLocationNotFound() {
-        // Arrange
         val mobileNumber = "8888888888"
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
         val request = BookCourtRequest(
@@ -269,7 +251,6 @@ class BookingServiceTest {
         whenever(userRepository.findByMobileNumber(mobileNumber)).thenReturn(Optional.of(user))
         whenever(locationRepository.findById(99L)).thenReturn(Optional.empty())
 
-        // Act & Assert
         assertThrows<LocationNotFoundException> {
             bookingService.bookCourt(mobileNumber, request)
         }
@@ -278,7 +259,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when slot already booked")
     fun testBookCourtSlotAlreadyBooked() {
-        // Arrange
         val mobileNumber = "8888888888"
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
@@ -305,8 +285,6 @@ class BookingServiceTest {
         whenever(locationRepository.findById(1L)).thenReturn(Optional.of(location))
         whenever(courtRepository.findById(1L)).thenReturn(Optional.of(court))
         whenever(timeSlotRepository.findById(1L)).thenReturn(Optional.of(timeSlot))
-        // Mock with exact values that will be used in the service
-        // Service calculates: endTime = slot.startTime.plusHours(1)
         val expectedEndTime = startTime.plusHours(1)
         whenever(bookingRepository.existsByCourt_IdAndCourt_Location_IdAndAndBookingDateAndTimeSlot_StartTimeLessThanAndTimeSlot_EndTimeGreaterThan(
             locationId = location.id,
@@ -316,18 +294,15 @@ class BookingServiceTest {
             startTime = startTime
         )).thenReturn(true)
 
-        // Act & Assert
         assertThrows<SlotAlreadyBookedException> {
             bookingService.bookCourt(mobileNumber, request)
         }
     }
 
-    // ==================== CANCEL BOOKING TESTS ====================
 
     @Test
     @DisplayName("Should cancel booking successfully")
     fun testCancelBookingSuccess() {
-        // Arrange
         val mobileNumber = "8888888888"
         val bookingId = 1L
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
@@ -354,10 +329,8 @@ class BookingServiceTest {
         whenever(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking))
         whenever(bookingRepository.save(any<Booking>())).thenAnswer { it.arguments[0] as Booking }
 
-        // Act
         val response = bookingService.cancelBooking(bookingId, mobileNumber)
 
-        // Assert
         assert(response.success)
         assert(response.message.contains("cancelled"))
     }
@@ -365,12 +338,10 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when booking not found")
     fun testCancelBookingNotFound() {
-        // Arrange
         val mobileNumber = "8888888888"
         val bookingId = 99L
         whenever(bookingRepository.findById(bookingId)).thenReturn(Optional.empty())
 
-        // Act & Assert
         assertThrows<BookingNotFoundException> {
             bookingService.cancelBooking(bookingId, mobileNumber)
         }
@@ -379,7 +350,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when canceling booking of another user")
     fun testCancelBookingUnauthorized() {
-        // Arrange
         val mobileNumber = "8888888888"
         val otherMobileNumber = "7777777777"
         val bookingId = 1L
@@ -406,7 +376,6 @@ class BookingServiceTest {
 
         whenever(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking))
 
-        // Act & Assert
         assertThrows<BookingCancellationNotAllowedException> {
             bookingService.cancelBooking(bookingId, mobileNumber)
         }
@@ -415,7 +384,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when canceling already cancelled booking")
     fun testCancelBookingAlreadyCancelled() {
-        // Arrange
         val mobileNumber = "8888888888"
         val bookingId = 1L
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
@@ -441,7 +409,6 @@ class BookingServiceTest {
 
         whenever(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking))
 
-        // Act & Assert
         assertThrows<BookingCancellationNotAllowedException> {
             bookingService.cancelBooking(bookingId, mobileNumber)
         }
@@ -450,7 +417,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when canceling booking less than 4 hours before")
     fun testCancelBookingLessThan4HoursBefore() {
-        // Arrange
         val mobileNumber = "8888888888"
         val bookingId = 1L
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
@@ -476,7 +442,6 @@ class BookingServiceTest {
 
         whenever(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking))
 
-        // Act & Assert
         assertThrows<BookingCancellationNotAllowedException> {
             bookingService.cancelBooking(bookingId, mobileNumber)
         }
@@ -485,7 +450,6 @@ class BookingServiceTest {
     @Test
     @DisplayName("Should throw exception when canceling past booking")
     fun testCancelBookingPastBooking() {
-        // Arrange
         val mobileNumber = "8888888888"
         val bookingId = 1L
         val user = User(id = 2, mobileNumber = mobileNumber, password = "pass", role = UserRole.USER)
@@ -499,7 +463,6 @@ class BookingServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
-        // Booking was in the past (2 hours ago)
         val timeSlot = TimeSlot(id = 1, startTime = LocalTime.now().minusHours(2), endTime = LocalTime.now().minusHours(1))
         val booking = Booking(
             id = bookingId,
@@ -512,7 +475,6 @@ class BookingServiceTest {
 
         whenever(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking))
 
-        // Act & Assert
         assertThrows<BookingCancellationNotAllowedException> {
             bookingService.cancelBooking(bookingId, mobileNumber)
         }

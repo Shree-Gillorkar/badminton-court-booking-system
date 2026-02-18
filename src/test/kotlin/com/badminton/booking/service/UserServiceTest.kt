@@ -32,12 +32,10 @@ class UserServiceTest {
         userService = UserService(bookingRepository)
     }
 
-    // ==================== GET USER BOOKINGS TESTS ====================
 
     @Test
     @DisplayName("Should get user bookings successfully")
     fun testGetUserBookingsSuccess() {
-        // Arrange
         val userMobile = "8888888888"
         val user = User(id = 2, mobileNumber = userMobile, password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
@@ -59,13 +57,8 @@ class UserServiceTest {
             timeSlot = timeSlot,
             status = BookingStatus.BOOKED
         )
-
         whenever(bookingRepository.findByUser_MobileNumber(userMobile)).thenReturn(listOf(booking))
-
-        // Act
         val response = userService.getUserBookings(userMobile)
-
-        // Assert
         assert(response.isNotEmpty())
         assert(response.size == 1)
         assert(response[0].bookingId == 1L)
@@ -76,21 +69,15 @@ class UserServiceTest {
     @Test
     @DisplayName("Should return empty list when user has no bookings")
     fun testGetUserBookingsEmpty() {
-        // Arrange
         val userMobile = "8888888888"
         whenever(bookingRepository.findByUser_MobileNumber(userMobile)).thenReturn(emptyList())
-
-        // Act
         val response = userService.getUserBookings(userMobile)
-
-        // Assert
         assert(response.isEmpty())
     }
 
     @Test
     @DisplayName("Should get multiple bookings for user")
     fun testGetUserBookingsMultiple() {
-        // Arrange
         val userMobile = "8888888888"
         val user = User(id = 2, mobileNumber = userMobile, password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
@@ -126,10 +113,8 @@ class UserServiceTest {
 
         whenever(bookingRepository.findByUser_MobileNumber(userMobile)).thenReturn(listOf(booking1, booking2))
 
-        // Act
         val response = userService.getUserBookings(userMobile)
 
-        // Assert
         assert(response.size == 2)
         assert(response[0].bookingId == 1L)
         assert(response[1].bookingId == 2L)
@@ -140,7 +125,6 @@ class UserServiceTest {
     @Test
     @DisplayName("Should return booking with correct details")
     fun testGetUserBookingsCorrectDetails() {
-        // Arrange
         val userMobile = "8888888888"
         val user = User(id = 2, mobileNumber = userMobile, password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
@@ -168,10 +152,8 @@ class UserServiceTest {
 
         whenever(bookingRepository.findByUser_MobileNumber(userMobile)).thenReturn(listOf(booking))
 
-        // Act
         val response = userService.getUserBookings(userMobile)
 
-        // Assert
         assert(response.size == 1)
         val bookingResponse = response[0]
         assert(bookingResponse.bookingId == 42L)
@@ -187,7 +169,6 @@ class UserServiceTest {
     @Test
     @DisplayName("Should get bookings for different users independently")
     fun testGetUserBookingsDifferentUsers() {
-        // Arrange
         val userMobile1 = "8888888888"
         val userMobile2 = "7777777777"
         val user1 = User(id = 2, mobileNumber = userMobile1, password = "pass", role = UserRole.USER)
@@ -224,23 +205,19 @@ class UserServiceTest {
         whenever(bookingRepository.findByUser_MobileNumber(userMobile1)).thenReturn(listOf(booking1))
         whenever(bookingRepository.findByUser_MobileNumber(userMobile2)).thenReturn(listOf(booking2))
 
-        // Act
         val response1 = userService.getUserBookings(userMobile1)
         val response2 = userService.getUserBookings(userMobile2)
 
-        // Assert
         assert(response1.size == 1)
         assert(response2.size == 1)
         assert(response1[0].bookingId == 1L)
         assert(response2[0].bookingId == 2L)
     }
 
-    // ==================== CANCEL BOOKING HELPER TESTS ====================
 
     @Test
     @DisplayName("Should return true for cancellable booking (future booking with 4+ hours)")
     fun testCancelBookingCancel() {
-        // Arrange
         val user = User(id = 2, mobileNumber = "8888888888", password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val location = Location(
@@ -252,10 +229,11 @@ class UserServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
+        val currentTime = LocalTime.now()
         val timeSlot = TimeSlot(
             id = 1,
-            startTime = LocalTime.now().plusHours(5),
-            endTime = LocalTime.now().plusHours(6)
+            startTime = currentTime.plusHours(5).plusMinutes(1),
+            endTime = currentTime.plusHours(6).plusMinutes(1)
         )
         val booking = Booking(
             id = 1,
@@ -266,17 +244,14 @@ class UserServiceTest {
             status = BookingStatus.BOOKED
         )
 
-        // Act
         val result = userService.cancelBooking(booking)
 
-        // Assert
         assert(result)
     }
 
     @Test
     @DisplayName("Should return false for past booking")
     fun testCancelBookingPastBooking() {
-        // Arrange
         val user = User(id = 2, mobileNumber = "8888888888", password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val location = Location(
@@ -288,10 +263,11 @@ class UserServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
+        val currentTime = LocalTime.now()
         val timeSlot = TimeSlot(
             id = 1,
-            startTime = LocalTime.now().minusHours(2),
-            endTime = LocalTime.now().minusHours(1)
+            startTime = LocalTime.now(),
+            endTime = currentTime.plusHours(1)
         )
         val booking = Booking(
             id = 1,
@@ -302,17 +278,14 @@ class UserServiceTest {
             status = BookingStatus.BOOKED
         )
 
-        // Act
         val result = userService.cancelBooking(booking)
 
-        // Assert
         assert(!result)
     }
 
     @Test
     @DisplayName("Should return false for booking within 4 hours")
     fun testCancelBookingWithin4Hours() {
-        // Arrange
         val user = User(id = 2, mobileNumber = "8888888888", password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val location = Location(
@@ -324,10 +297,11 @@ class UserServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
+        val currentTime = LocalTime.now()
         val timeSlot = TimeSlot(
             id = 1,
-            startTime = LocalTime.now().plusHours(2),
-            endTime = LocalTime.now().plusHours(3)
+            startTime = currentTime.plusHours(2),
+            endTime = currentTime.plusHours(3)
         )
         val booking = Booking(
             id = 1,
@@ -338,17 +312,14 @@ class UserServiceTest {
             status = BookingStatus.BOOKED
         )
 
-        // Act
         val result = userService.cancelBooking(booking)
 
-        // Assert
         assert(!result)
     }
 
     @Test
     @DisplayName("Should return true for booking exactly 4 hours away")
     fun testCancelBookingExactly4Hours() {
-        // Arrange
         val user = User(id = 2, mobileNumber = "8888888888", password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val location = Location(
@@ -360,10 +331,11 @@ class UserServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
+        val currentTime = LocalTime.now()
         val timeSlot = TimeSlot(
             id = 1,
-            startTime = LocalTime.now().plusHours(4),
-            endTime = LocalTime.now().plusHours(5)
+            startTime = currentTime.plusHours(4).plusMinutes(1),
+            endTime = currentTime.plusHours(5).plusMinutes(1)
         )
         val booking = Booking(
             id = 1,
@@ -374,10 +346,8 @@ class UserServiceTest {
             status = BookingStatus.BOOKED
         )
 
-        // Act
         val result = userService.cancelBooking(booking)
 
-        // Assert
         assert(result)
     }
 
@@ -396,10 +366,11 @@ class UserServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
+        val currentTime = LocalTime.now()
         val timeSlot = TimeSlot(
             id = 1,
-            startTime = LocalTime.now().plusHours(5),
-            endTime = LocalTime.now().plusHours(6)
+            startTime = currentTime.plusHours(5).plusMinutes(1),
+            endTime = currentTime.plusHours(6).plusMinutes(1)
         )
         val booking = Booking(
             id = 1,
@@ -410,17 +381,14 @@ class UserServiceTest {
             status = BookingStatus.BOOKED
         )
 
-        // Act
         val result = userService.cancelBooking(booking)
 
-        // Assert
         assert(result)
     }
 
     @Test
     @DisplayName("Should return false for booking 3 hours 59 minutes away")
     fun testCancelBookingJustUnder4Hours() {
-        // Arrange
         val user = User(id = 2, mobileNumber = "8888888888", password = "pass", role = UserRole.USER)
         val admin = User(id = 1, mobileNumber = "9999999999", password = "pass", role = UserRole.ADMIN)
         val location = Location(
@@ -432,10 +400,11 @@ class UserServiceTest {
             admin = admin
         )
         val court = Court(id = 1, name = "Court 1", location = location)
+        val currentTime = LocalTime.now()
         val timeSlot = TimeSlot(
             id = 1,
-            startTime = LocalTime.now().plusHours(3).plusMinutes(59),
-            endTime = LocalTime.now().plusHours(4).plusMinutes(59)
+            startTime = currentTime.plusHours(3).plusMinutes(59),
+            endTime = currentTime.plusHours(4).plusMinutes(59)
         )
         val booking = Booking(
             id = 1,
@@ -446,10 +415,8 @@ class UserServiceTest {
             status = BookingStatus.BOOKED
         )
 
-        // Act
         val result = userService.cancelBooking(booking)
 
-        // Assert
         assert(!result)
     }
 }

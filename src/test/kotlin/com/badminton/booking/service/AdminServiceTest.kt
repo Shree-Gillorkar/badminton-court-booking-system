@@ -51,12 +51,10 @@ class AdminServiceTest {
         adminService = AdminService(userRepository, locationRepository, courtRepository, bookingRepository)
     }
 
-    // ==================== REGISTER LOCATION TESTS ====================
 
     @Test
     @DisplayName("Should register location successfully with valid admin and court count")
     fun testRegisterLocationSuccess() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -84,10 +82,8 @@ class AdminServiceTest {
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(0)
         whenever(locationRepository.save(any<Location>())).thenReturn(savedLocation)
 
-        // Act
         val response = adminService.registerLocation(request)
 
-        // Assert
         assert(response.success)
         assert(response.message.contains("successfully"))
         verify(userRepository).findByMobileNumber(request.adminMobile)
@@ -99,7 +95,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should throw exception when admin not found")
     fun testRegisterLocationAdminNotFound() {
-        // Arrange
         val request = RegisterLocationRequest(
             adminMobile = "9999999999",
             locationName = "Mumbai Courts",
@@ -109,7 +104,6 @@ class AdminServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.adminMobile)).thenReturn(Optional.empty())
 
-        // Act & Assert
         assertThrows<MobileNotRegisteredException> {
             adminService.registerLocation(request)
         }
@@ -119,7 +113,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should throw exception when non-admin user tries to register location")
     fun testRegisterLocationNonAdminUser() {
-        // Arrange
         val user = User(
             id = 2,
             mobileNumber = "8888888888",
@@ -136,7 +129,6 @@ class AdminServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.adminMobile)).thenReturn(Optional.of(user))
 
-        // Act & Assert
         assertThrows<UnauthorizedBookingAccessException> {
             adminService.registerLocation(request)
         }
@@ -145,7 +137,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should throw exception when admin exceeds maximum locations (3)")
     fun testRegisterLocationMaximumLocationsExceeded() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -163,7 +154,6 @@ class AdminServiceTest {
         whenever(userRepository.findByMobileNumber(request.adminMobile)).thenReturn(Optional.of(admin))
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(3)
 
-        // Act & Assert
         assertThrows<ValidationException> {
             adminService.registerLocation(request)
         }
@@ -172,7 +162,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should throw exception when court count is less than 1")
     fun testRegisterLocationInvalidCourtCountTooLow() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -190,7 +179,6 @@ class AdminServiceTest {
         whenever(userRepository.findByMobileNumber(request.adminMobile)).thenReturn(Optional.of(admin))
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(0)
 
-        // Act & Assert
         assertThrows<ValidationException> {
             adminService.registerLocation(request)
         }
@@ -199,7 +187,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should throw exception when court count exceeds maximum (4)")
     fun testRegisterLocationInvalidCourtCountTooHigh() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -217,7 +204,6 @@ class AdminServiceTest {
         whenever(userRepository.findByMobileNumber(request.adminMobile)).thenReturn(Optional.of(admin))
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(0)
 
-        // Act & Assert
         assertThrows<ValidationException> {
             adminService.registerLocation(request)
         }
@@ -226,7 +212,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should register location with minimum courts (1)")
     fun testRegisterLocationMinimumCourts() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -253,10 +238,8 @@ class AdminServiceTest {
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(0)
         whenever(locationRepository.save(any<Location>())).thenReturn(savedLocation)
 
-        // Act
         val response = adminService.registerLocation(request)
 
-        // Assert
         assert(response.success)
         verify(courtRepository, org.mockito.kotlin.times(1)).save(any<Court>())
     }
@@ -264,7 +247,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should register location with maximum courts (4)")
     fun testRegisterLocationMaximumCourts() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -291,10 +273,8 @@ class AdminServiceTest {
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(0)
         whenever(locationRepository.save(any<Location>())).thenReturn(savedLocation)
 
-        // Act
         val response = adminService.registerLocation(request)
 
-        // Assert
         assert(response.success)
         verify(courtRepository, org.mockito.kotlin.times(4)).save(any<Court>())
     }
@@ -302,7 +282,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should register location with 2 existing locations")
     fun testRegisterLocationWith2ExistingLocations() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -329,20 +308,16 @@ class AdminServiceTest {
         whenever(locationRepository.countByAdminId(admin.id)).thenReturn(2)
         whenever(locationRepository.save(any<Location>())).thenReturn(savedLocation)
 
-        // Act
         val response = adminService.registerLocation(request)
 
-        // Assert
         assert(response.success)
         verify(locationRepository).countByAdminId(admin.id)
     }
 
-    // ==================== GET ADMIN DASHBOARD TESTS ====================
 
     @Test
     @DisplayName("Should get admin dashboard successfully")
     fun testGetAdminDashboardSuccess() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -363,10 +338,8 @@ class AdminServiceTest {
         whenever(locationRepository.findByAdminId(admin.id)).thenReturn(listOf(location))
         whenever(bookingRepository.findByCourtId(any())).thenReturn(emptyList())
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         assert(response.message.contains("fetched"))
         verify(userRepository).findByMobileNumber(admin.mobileNumber)
@@ -376,7 +349,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should throw exception when non-admin tries to get dashboard")
     fun testGetAdminDashboardNonAdminUser() {
-        // Arrange
         val user = User(
             id = 2,
             mobileNumber = "8888888888",
@@ -386,7 +358,6 @@ class AdminServiceTest {
         )
         whenever(userRepository.findByMobileNumber(user.mobileNumber)).thenReturn(Optional.of(user))
 
-        // Act & Assert
         assertThrows<UnauthorizedBookingAccessException> {
             adminService.getAdminDashboard(user.mobileNumber)
         }
@@ -395,7 +366,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should return empty dashboard for admin with no locations")
     fun testGetAdminDashboardNoLocations() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -406,10 +376,8 @@ class AdminServiceTest {
         whenever(userRepository.findByMobileNumber(admin.mobileNumber)).thenReturn(Optional.of(admin))
         whenever(locationRepository.findByAdminId(admin.id)).thenReturn(emptyList())
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         assert(response.data?.locations?.isEmpty() == true)
     }
@@ -417,7 +385,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should return dashboard with single location and single court without bookings")
     fun testGetAdminDashboardSingleLocationSingleCourt() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -441,10 +408,8 @@ class AdminServiceTest {
         whenever(locationRepository.findByAdminId(admin.id)).thenReturn(listOf(location))
         whenever(bookingRepository.findByCourtId(court.id)).thenReturn(emptyList())
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         assert(response.data?.locations?.size == 1)
         assert(response.data?.locations?.get(0)?.locationName == "Mumbai")
@@ -456,7 +421,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should return dashboard with location, court and bookings")
     fun testGetAdminDashboardWithBookings() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -496,10 +460,8 @@ class AdminServiceTest {
         whenever(locationRepository.findByAdminId(admin.id)).thenReturn(listOf(location))
         whenever(bookingRepository.findByCourtId(court.id)).thenReturn(listOf(booking))
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         assert(response.data?.locations?.size == 1)
         val locationDto = response.data?.locations?.get(0)
@@ -515,7 +477,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should return dashboard with multiple locations and courts")
     fun testGetAdminDashboardMultipleLocationsAndCourts() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -524,7 +485,6 @@ class AdminServiceTest {
             active = true
         )
 
-        // Location 1
         val location1 = Location(
             id = 1,
             name = "Mumbai",
@@ -538,7 +498,6 @@ class AdminServiceTest {
         val court2 = Court(id = 2, name = "Court 2", location = location1)
         location1.courts.addAll(listOf(court1, court2))
 
-        // Location 2
         val location2 = Location(
             id = 2,
             name = "Bangalore",
@@ -557,21 +516,17 @@ class AdminServiceTest {
         whenever(bookingRepository.findByCourtId(2L)).thenReturn(emptyList())
         whenever(bookingRepository.findByCourtId(3L)).thenReturn(emptyList())
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         assert(response.data?.locations?.size == 2)
         
-        // Verify Location 1
         val location1Dto = response.data?.locations?.get(0)
         assert(location1Dto?.locationName == "Mumbai")
         assert(location1Dto?.courts?.size == 2)
         assert(location1Dto?.courts?.get(0)?.courtName == "Court 1")
         assert(location1Dto?.courts?.get(1)?.courtName == "Court 2")
 
-        // Verify Location 2
         val location2Dto = response.data?.locations?.get(1)
         assert(location2Dto?.locationName == "Bangalore")
         assert(location2Dto?.courts?.size == 1)
@@ -581,7 +536,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should return dashboard with multiple bookings per court")
     fun testGetAdminDashboardMultipleBookingsPerCourt() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -628,10 +582,8 @@ class AdminServiceTest {
         whenever(locationRepository.findByAdminId(admin.id)).thenReturn(listOf(location))
         whenever(bookingRepository.findByCourtId(court.id)).thenReturn(listOf(booking1, booking2))
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         val courtDto = response.data?.locations?.get(0)?.courts?.get(0)
         assert(courtDto?.bookings?.size == 2)
@@ -642,7 +594,6 @@ class AdminServiceTest {
     @Test
     @DisplayName("Should map booking details correctly in dashboard")
     fun testGetAdminDashboardBookingDetailsMapping() {
-        // Arrange
         val admin = User(
             id = 1,
             mobileNumber = "9999999999",
@@ -687,10 +638,8 @@ class AdminServiceTest {
         whenever(locationRepository.findByAdminId(admin.id)).thenReturn(listOf(location))
         whenever(bookingRepository.findByCourtId(court.id)).thenReturn(listOf(booking))
 
-        // Act
         val response = adminService.getAdminDashboard(admin.mobileNumber)
 
-        // Assert
         assert(response.success)
         val bookingDto = response.data?.locations?.get(0)?.courts?.get(0)?.bookings?.get(0)
         

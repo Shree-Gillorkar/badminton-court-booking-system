@@ -33,7 +33,6 @@ class AuthServiceTest {
         authService = AuthService(userRepository)
     }
 
-    // ==================== REGISTER TESTS ====================
 
     @Test
     @DisplayName("Should register user successfully with valid credentials")
@@ -46,10 +45,8 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.empty())
 
-        // Act
         authService.register(request)
 
-        // Assert
         verify(userRepository).findByMobileNumber(request.mobileNumber)
         verify(userRepository).save(any<User>())
     }
@@ -57,7 +54,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should register admin successfully")
     fun testRegisterAdminSuccess() {
-        // Arrange
         val request = RegisterRequest(
             mobileNumber = "9999999999",
             password = "adminpass",
@@ -65,10 +61,8 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.empty())
 
-        // Act
         authService.register(request)
 
-        // Assert
         verify(userRepository).findByMobileNumber(request.mobileNumber)
         verify(userRepository).save(any<User>())
     }
@@ -76,7 +70,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should throw exception when user already exists")
     fun testRegisterUserAlreadyExists() {
-        // Arrange
         val existingUser = User(
             mobileNumber = "9876543210",
             password = "password123",
@@ -90,7 +83,6 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.of(existingUser))
 
-        // Act & Assert
         assertThrows<UserAlreadyExistException> {
             authService.register(request)
         }
@@ -100,7 +92,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should register with different mobile numbers")
     fun testRegisterMultipleUsers() {
-        // Arrange
         val request1 = RegisterRequest(
             mobileNumber = "1111111111",
             password = "pass1",
@@ -114,11 +105,9 @@ class AuthServiceTest {
         whenever(userRepository.findByMobileNumber(request1.mobileNumber)).thenReturn(Optional.empty())
         whenever(userRepository.findByMobileNumber(request2.mobileNumber)).thenReturn(Optional.empty())
 
-        // Act
         authService.register(request1)
         authService.register(request2)
 
-        // Assert
         verify(userRepository).findByMobileNumber(request1.mobileNumber)
         verify(userRepository).findByMobileNumber(request2.mobileNumber)
         verify(userRepository, org.mockito.kotlin.times(2)).save(any<User>())
@@ -127,7 +116,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should register user with strong password")
     fun testRegisterWithStrongPassword() {
-        // Arrange
         val request = RegisterRequest(
             mobileNumber = "9876543210",
             password = "Secure@Password123!#$",
@@ -135,19 +123,15 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.empty())
 
-        // Act
         authService.register(request)
 
-        // Assert
         verify(userRepository).save(any<User>())
     }
 
-    // ==================== LOGIN TESTS ====================
 
     @Test
     @DisplayName("Should login user successfully with valid credentials")
     fun testLoginUserSuccess() {
-        // Arrange
         val user = User(
             mobileNumber = "9876543210",
             password = "password123",
@@ -160,7 +144,6 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.of(user))
 
-        // Act & Assert - Should not throw exception
         authService.login(request)
         verify(userRepository).findByMobileNumber(request.mobileNumber)
     }
@@ -168,7 +151,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should login admin successfully")
     fun testLoginAdminSuccess() {
-        // Arrange
         val admin = User(
             mobileNumber = "9999999999",
             password = "adminpass",
@@ -181,7 +163,6 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.of(admin))
 
-        // Act & Assert - Should not throw exception
         authService.login(request)
         verify(userRepository).findByMobileNumber(request.mobileNumber)
     }
@@ -189,14 +170,12 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should throw exception when user not found during login")
     fun testLoginUserNotFound() {
-        // Arrange
         val request = LoginRequest(
             mobileNumber = "9876543210",
             password = "password123"
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.empty())
 
-        // Act & Assert
         assertThrows<MobileNotRegisteredException> {
             authService.login(request)
         }
@@ -206,7 +185,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should throw exception when password is incorrect")
     fun testLoginInvalidPassword() {
-        // Arrange
         val user = User(
             mobileNumber = "9876543210",
             password = "correctpassword",
@@ -219,7 +197,6 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.of(user))
 
-        // Act & Assert
         assertThrows<InvalidCredentialsException> {
             authService.login(request)
         }
@@ -229,7 +206,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should handle empty password during login")
     fun testLoginWithEmptyPassword() {
-        // Arrange
         val user = User(
             mobileNumber = "9876543210",
             password = "password123",
@@ -242,7 +218,6 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.of(user))
 
-        // Act & Assert
         assertThrows<InvalidCredentialsException> {
             authService.login(request)
         }
@@ -251,7 +226,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should login with case-sensitive password")
     fun testLoginCaseSensitivePassword() {
-        // Arrange
         val user = User(
             mobileNumber = "9876543210",
             password = "Password123",
@@ -264,7 +238,6 @@ class AuthServiceTest {
         )
         whenever(userRepository.findByMobileNumber(request.mobileNumber)).thenReturn(Optional.of(user))
 
-        // Act & Assert
         assertThrows<InvalidCredentialsException> {
             authService.login(request)
         }
@@ -273,7 +246,6 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should successfully login after registration")
     fun testLoginAfterRegistration() {
-        // Arrange
         val registerRequest = RegisterRequest(
             mobileNumber = "9876543210",
             password = "password123",
@@ -293,11 +265,9 @@ class AuthServiceTest {
         whenever(userRepository.findByMobileNumber(registerRequest.mobileNumber)).thenReturn(Optional.empty())
         whenever(userRepository.findByMobileNumber(loginRequest.mobileNumber)).thenReturn(Optional.of(registeredUser))
 
-        // Act
         authService.register(registerRequest)
         authService.login(loginRequest)
 
-        // Assert
         verify(userRepository).save(any<User>())
     }
 }
